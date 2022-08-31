@@ -391,5 +391,5 @@ def insert_patch_into_volume(
     datap = copy.deepcopy(datap)
     datap.data3d[slices] = np.maximum(datap.data3d[slices], patch3dr)
 
-    return datap, slices
+    return datap, slices, patch3dr
 

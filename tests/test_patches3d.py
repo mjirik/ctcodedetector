@@ -13,19 +13,31 @@ import io3d
 import io3d.datasets
 from pathlib import Path
 import copy
+from devel.coco_dataset import CocoDataset
 
 
 def test_patches():
 
-    make_dataset(Path("."), "train", 3, 2)
-    make_dataset(Path("."), "test",dataset_image_number=3, repeat_number=5)
-    make_dataset(Path("."), "val", dataset_image_number=3, repeat_number=5)
+    make_dataset(Path("."), "train", 2, 1)
+    # make_dataset(Path("."), "test",dataset_image_number=3, repeat_number=5)
+    # make_dataset(Path("."), "val", dataset_image_number=3, repeat_number=5)
     # io3d.datasets.joinp()
     # # ct_fn = "/storage/plzen4-ntis/projects/korpusy_cv/mjirik_pilsen_pigs/Tx018D_Ven.mhd"
     # datai = 1
     # ct_fn = io3d.joinp(f"biomedical/orig/pilsen_pigs/test/PP_{datai:04d}/PATIENT_DICOM/PP_{datai:04d}.mhd")
 
+    annotation_path = r'./coco_train.json'
+    image_dir = r'./'
 
+    coco_dataset = CocoDataset(annotation_path, image_dir)
+    # coco_dataset.display_info()
+    # coco_dataset.display_licenses()
+    coco_dataset.display_categories()
+    html_str = coco_dataset.display_image('random', use_url=False)
+    # IPython.display.HTML(html)
+    html_file = open("filename.html", "w")
+    html_file.write(html_str)
+    html_file.close()
     # %% md
 
     # %%

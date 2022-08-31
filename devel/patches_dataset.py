@@ -7,6 +7,7 @@ import datetime
 from pathlib import Path
 import json
 import skimage.io
+from loguru import logger
 
 
 def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, repeat_number=5):
@@ -17,6 +18,7 @@ def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, r
         for datai in range(1, dataset_image_number):
             iimage += 1
             ct_fn = io3d.joinp(f"biomedical/orig/pilsen_pigs/{dataset_type}/PP_{datai:04d}/PATIENT_DICOM/PP_{datai:04d}.mhd")
+            logger.info(ct_fn.name)
 
             datap = io3d.read(ct_fn)
             voxelsize_mm_scalar = .1
@@ -37,7 +39,7 @@ def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, r
             # plt.imshow(patch)
             # plt.colorbar()
 
-            datap, slices = insert_patch_into_volume(
+            datapc, slices, patch3dr = insert_patch_into_volume(
                 datap, patch,
                 colon_radius_mm=10,
                 patch_thickness_mm=1.0,
@@ -45,17 +47,17 @@ def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, r
                 background_density_hu=-1024
             )
             axis = 2
-            im = np.max(datap.data3d, axis=axis)
+            im = np.max(datapc.data3d, axis=axis)
             im_rescal = skimage.exposure.rescale_intensity(im, in_range=(-100, 2000), out_range=(0, 1))
             # [top left x position, top left y position, width, height]
 
             removed = slices.pop(axis)
 
             bbox = list(map(int, [
-                slices[0].start,
                 slices[1].start,
+                slices[0].start,
+                slices[1].stop - slices[1].start,
                 slices[0].stop - slices[0].start,
-                slices[1].stop - slices[1].start
             ]))
 
 
@@ -84,7 +86,7 @@ def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, r
             "iscrowd": 0,
             "image_id": iimage,
             "bbox": bbox,
-            "category_id": 0,
+            "category_id": 1,
             "id": iimage
             }
 
