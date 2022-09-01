@@ -8,16 +8,23 @@ from pathlib import Path
 import json
 import skimage.io
 from loguru import logger
+from typing import Optional
 
 
-def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, repeat_number=5):
+def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number:int=9, repeat_number:int=5, pilsenpigs_base_path:Optional[Path]=None):
+    
     coco = create_coco_header()
 
+    if not pilsenpigs_base_path:
+        pilsenpigs_base_path = io3d.joinp(f"biomedical/orig/pilsen_pigs/")
+    else:
+        pilsenpigs_base_path = Path(pilsenpigs_base_path)
     iimage = 0
     for irepeat in range(repeat_number):
         for datai in range(1, dataset_image_number):
             iimage += 1
-            ct_fn = io3d.joinp(f"biomedical/orig/pilsen_pigs/{dataset_type}/PP_{datai:04d}/PATIENT_DICOM/PP_{datai:04d}.mhd")
+            ct_fn = pilsenpigs_base_path / f"{dataset_type}/PP_{datai:04d}/PATIENT_DICOM/PP_{datai:04d}.mhd"
+            
             logger.info(ct_fn.name)
 
             datap = io3d.read(ct_fn)
@@ -48,7 +55,7 @@ def make_dataset(outputdir:Path, dataset_type="train", dataset_image_number=9, r
             )
             axis = 2
             im = np.max(datapc.data3d, axis=axis)
-            im_rescal = skimage.exposure.rescale_intensity(im, in_range=(-100, 2000), out_range=(0, 1))
+            im_rescal = skimage.exposure.rescale_intensity(im, in_range=(-100, 2000), out_range=(0, 255)).astype(np.uint8)
             # [top left x position, top left y position, width, height]
 
             removed = slices.pop(axis)
@@ -115,7 +122,7 @@ def create_coco_header():
         "annotations": [],
         "categories": [
             {"supercategory": "patch","id": 1,"name": "patch_on"},
-            {"supercategory": "patch","id": 2,"name": "patch_off"},
+#             {"supercategory": "patch","id": 2,"name": "patch_off"},
             # {"supercategory": "vehicle","id": 3,"name": "car"},
             # {"supercategory": "vehicle","id": 4,"name": "motorcycle"},
             # {"supercategory": "vehicle","id": 5,"name": "airplane"},

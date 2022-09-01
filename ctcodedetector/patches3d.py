@@ -162,9 +162,9 @@ def noises(shape, sample_spacing=None, exponent=0, lambda0=0, lambda1=1, method=
         **kwargs
     )
 
-    if method is "space":
+    if method == "space":
         noise = noises_space(**kwargs1)
-    elif method is "freq":
+    elif method == "freq":
         noise = noises_freq(**kwargs1)
     else:
         logger.error("Unknown noise method `{}`".format(method))
@@ -175,7 +175,7 @@ def noises(shape, sample_spacing=None, exponent=0, lambda0=0, lambda1=1, method=
 def ndimage_normalization(data, std_factor=1.0):
     t0 = datetime.datetime.now()
     data0n = (data - np.mean(data)) * 1.0 / (std_factor * np.var(data) ** 0.5)
-    logger.debug(f"t_norm={datetime.datetime.now() - t0}")
+#     logger.debug(f"t_norm={datetime.datetime.now() - t0}")
 
     return data0n
 
@@ -229,7 +229,7 @@ def noises_space(
             data0 = scipy.ndimage.filters.gaussian_filter(data0, sigma=lambda0_px)
         data0 = ndimage_normalization(data0)
         w0 = np.exp(exponent * lambda0)
-    logger.debug(f"t_l0={datetime.datetime.now() - t0}")
+#     logger.debug(f"t_l0={datetime.datetime.now() - t0}")
     t0 = datetime.datetime.now()
     if lambda1 is not None:
         lambda1_px = lambda1 / np.asarray(sample_spacing)
@@ -241,10 +241,10 @@ def noises_space(
 
         data1 = ndimage_normalization(data1)
         w1 = np.exp(exponent * lambda1)
-    logger.debug(f"t_l1={datetime.datetime.now() - t0}")
+#     logger.debug(f"t_l1={datetime.datetime.now() - t0}")
     t0 = datetime.datetime.now()
-    logger.debug("lambda_px {} {}".format(lambda0_px, lambda1_px))
-    logger.debug(f"use_fft lambda 0 and 1 {use_fft_l0} {use_fft_l1}")
+#     logger.debug("lambda_px {} {}".format(lambda0_px, lambda1_px))
+#     logger.debug(f"use_fft lambda 0 and 1 {use_fft_l0} {use_fft_l1}")
     wsum = w0 + w1
     if wsum > 0:
         w0 = w0 / wsum
@@ -255,7 +255,7 @@ def noises_space(
     # print np.mean(data1), np.var(data1)
 
     data = (data0 * w0 + data1 * w1)
-    logger.debug("w0, w1 {} {}".format(w0, w1))
+#     logger.debug("w0, w1 {} {}".format(w0, w1))
 
     # plt.figure()
     # plt.imshow(data0[:,:,50], cmap="gray")
@@ -386,7 +386,7 @@ def insert_patch_into_volume(
 
     indst = (np.random.rand(3) * (np.asarray(datap.data3d.shape) - patch3dr.shape - 1)).astype(int)
     indsp = indst + patch3dr.shape
-    slices = [slice(indst[0], indsp[0]), slice(indst[2], indsp[2]), slice(indst[2], indsp[2])]
+    slices = (slice(indst[0], indsp[0]), slice(indst[2], indsp[2]), slice(indst[2], indsp[2]))
 
     datap = copy.deepcopy(datap)
     datap.data3d[slices] = np.maximum(datap.data3d[slices], patch3dr)
