@@ -10,6 +10,9 @@ from io import BytesIO
 from math import trunc
 from PIL import Image as PILImage
 from PIL import ImageDraw as PILImageDraw
+from pathlib import Path
+from typing import Union, Optional, Tuple, List
+import copy
 
 
 # Load the dataset json
@@ -268,3 +271,43 @@ class CocoDataset():
             if image_id not in self.segmentations:
                 self.segmentations[image_id] = []
             self.segmentations[image_id].append(segmentation)
+
+    def train_test_split(self,
+                         split1_path: Optional[Path,str],
+                         split2_path: Optional[Path,str],
+                         test_size=None, train_size=None, random_state=None,
+                         shuffle = True, stratify = None
+                         ) -> Tuple[List[dict], List[dict]]:
+        """
+        Split dataset into two groups. Parameters are based on sklearn.model_selection.train_test_split function.
+
+        :param split1_path: If both paths are set, the output json is created
+        :param split2_path: If both paths are set, the output json is created
+        :param test_size:
+        :param train_size:
+        :param random_state:
+        :param shuffle:
+        :param stratify:
+        :return:
+        """
+        from sklearn.model_selection import train_test_split
+        split1_coco = copy.deepcopy(self.coco)
+        split2_coco = copy.deepcopy(self.coco)
+        im_ids1, im_ids2 = train_test_split(
+            tuple(self.images),
+            test_size=test_size, train_size=train_size, random_state=random_state,
+            shuffle=shuffle, stratify=stratify
+        )
+        split1_coco["images"] = [self.images[im_id] for im_id in im_ids1]
+        split2_coco["images"] = [self.images[im_id] for im_id in im_ids2]
+
+        split1_coco["annotations"] = [].extend([self.segmentations[im_id] for im_id in im_ids1])
+        split2_coco["annotations"] = [].extend([self.segmentations[im_id] for im_id in im_ids2])
+
+        if split1_path and split2_path:
+            with open(split1_path, "w") as f:
+                json.dump(split1_coco, f, indent=2)
+            with open(split2_path, "w") as f:
+                json.dump(split2_coco, f, indent=2)
+        # split1 =
+        return split1_coco, split2_coco
